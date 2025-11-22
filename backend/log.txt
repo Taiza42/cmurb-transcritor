@@ -1,0 +1,16 @@
+nohup: ignoring input
+INFO:     Started server process [117649]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8501 (Press CTRL+C to quit)
+--- Carregando Modelo Whisper (Isso pode demorar 1 min) ---
+--- Modelo Carregado! ---
+INFO:     131.100.130.244:0 - "GET / HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "GET /assets/index-D48d8PY4.css HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "GET /assets/index-BZdzzIuM.js HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "GET /assets/image_0-DyKP_vtH.png HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "POST /api/login HTTP/1.1" 200 OK
+/home/isabela_santana_prof/cmurb-transcritor/venv/lib/python3.10/site-packages/whisper/transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
+  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+Iniciando transcrição para: Mãe Ana
+INFO:     131.100.130.244:0 - "POST /api/transcrever HTTP/1.1" 200 OK
