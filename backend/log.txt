@@ -14,3 +14,16 @@ INFO:     131.100.130.244:0 - "POST /api/login HTTP/1.1" 200 OK
   warnings.warn("FP16 is not supported on CPU; using FP32 instead")
 Iniciando transcrição para: Mãe Ana
 INFO:     131.100.130.244:0 - "POST /api/transcrever HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "GET /login HTTP/1.1" 404 Not Found
+INFO:     131.100.130.244:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     131.100.130.244:0 - "GET / HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "POST /api/login HTTP/1.1" 401 Unauthorized
+INFO:     131.100.130.244:0 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     131.100.130.244:0 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "GET / HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "GET /assets/index-D7XcHjVY.css HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "GET /assets/index-q6dn_tl5.js HTTP/1.1" 200 OK
+/home/isabela_santana_prof/cmurb-transcritor/venv/lib/python3.10/site-packages/whisper/transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
+  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+Iniciando transcrição para: Yalorixá Ana
+INFO:     131.100.130.244:0 - "POST /api/transcrever HTTP/1.1" 200 OK
