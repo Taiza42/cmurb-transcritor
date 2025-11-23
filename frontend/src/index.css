@@ -48,3 +48,4 @@ body {
     @apply bg-white dark:bg-[#2D3748] p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition-colors;
   }
 }
+
