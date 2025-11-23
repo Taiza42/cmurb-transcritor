@@ -1,36 +1,74 @@
-import React, { useState } from 'react';
-import { Users, UserPlus, Trash2, X, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Users, UserPlus, Trash2, X, AlertTriangle, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const initialUsers = [
-  { username: 'admin', name: 'Administrador Principal', role: 'admin' },
-  { username: 'pesquisador1', name: 'Ana Silva', role: 'pesquisador' },
-];
+const API_URL = '/api';
 
 function UserManagementPage() {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  
+  // Estado para o formulário de criação
   const [newUser, setNewUser] = useState({ username: '', name: '', password: '', role: 'pesquisador' });
 
-  const handleCreateUser = (e) => {
+  // 1. CARREGAR USUÁRIOS DO BACKEND AO INICIAR
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_URL}/users`);
+      setUsers(response.data);
+    } catch (error) {
+      toast.error("Erro ao carregar lista de usuários.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // 2. CRIAR NOVO USUÁRIO NO BACKEND
+  const handleCreateUser = async (e) => {
     e.preventDefault();
     if (!newUser.username || !newUser.name || !newUser.password) {
         toast.error("Preencha todos os campos.");
         return;
     }
-    const created = { ...newUser };
-    setUsers([...users, created]);
-    setNewUser({ username: '', name: '', password: '', role: 'pesquisador' });
-    setShowCreateModal(false);
-    toast.success(`Usuário ${created.username} criado!`);
+
+    try {
+        await axios.post(`${API_URL}/users`, newUser);
+        toast.success(`Usuário ${newUser.username} criado!`);
+        
+        // Limpa o form e recarrega a lista do banco
+        setNewUser({ username: '', name: '', password: '', role: 'pesquisador' });
+        setShowCreateModal(false);
+        fetchUsers(); 
+        
+    } catch (error) {
+        if (error.response && error.response.status === 400) {
+            toast.error("Este nome de usuário já existe.");
+        } else {
+            toast.error("Erro ao criar usuário.");
+        }
+    }
   };
 
-  const confirmDeleteUser = () => {
+  // 3. DELETAR USUÁRIO NO BACKEND
+  const confirmDeleteUser = async () => {
     if (!userToDelete) return;
-    setUsers(users.filter(u => u.username !== userToDelete.username));
-    toast.success(`Usuário removido.`);
-    setUserToDelete(null);
+    
+    try {
+        await axios.delete(`${API_URL}/users/${userToDelete.username}`);
+        toast.success("Usuário removido.");
+        setUserToDelete(null);
+        fetchUsers(); // Recarrega a lista
+    } catch (error) {
+        toast.error("Erro ao excluir usuário.");
+    }
   };
 
   return (
@@ -40,50 +78,62 @@ function UserManagementPage() {
             <h1 className="text-2xl font-serif font-bold text-cmurb-vinho dark:text-cmurb-laranja flex items-center gap-3">
             <Users className="text-cmurb-laranja" /> Gestão de Usuários
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">Controle de acesso ao sistema de transcrição.</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Controle de acesso ao banco de dados.</p>
         </div>
-        <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2 py-3 px-6">
-            <UserPlus size={18} /> Novo Usuário
-        </button>
+        <div className="flex gap-3">
+             <button onClick={fetchUsers} className="p-3 rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition" title="Atualizar Lista">
+                <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+             </button>
+            <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2 py-3 px-6">
+                <UserPlus size={18} /> Novo Usuário
+            </button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors">
-        <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50 dark:bg-gray-900/50 text-xs uppercase font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                <tr><th className="px-6 py-4">Login</th><th className="px-6 py-4">Nome</th><th className="px-6 py-4">Tipo</th><th className="px-6 py-4 text-right">Ações</th></tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {users.map(user => (
-                    <tr key={user.username} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-200">{user.username}</td>
-                        <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{user.name}</td>
-                        <td className="px-6 py-4">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
-                                user.role === 'admin' 
-                                    ? 'bg-cmurb-vinho/10 text-cmurb-vinho dark:text-orange-400' 
-                                    : 'bg-blue-100 text-blue-700' // AQUI: Removidos os estilos "dark:" para manter sempre igual ao claro
-                            }`}>
-                                {user.role}
-                            </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                            {user.username !== 'admin' && (
-                                <button onClick={() => setUserToDelete(user)} className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition p-2 hover:bg-red-50 rounded-full">
-                                    <Trash2 size={18} />
-                                </button>
-                            )}
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
+        {loading ? (
+            <div className="p-12 text-center text-gray-500">Carregando usuários...</div>
+        ) : (
+            <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50 dark:bg-gray-900/50 text-xs uppercase font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                    <tr><th className="px-6 py-4">Login</th><th className="px-6 py-4">Nome</th><th className="px-6 py-4">Tipo</th><th className="px-6 py-4 text-right">Ações</th></tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {users.map(user => (
+                        <tr key={user.username} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-200">{user.username}</td>
+                            <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{user.name}</td>
+                            <td className="px-6 py-4">
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+                                    user.role === 'admin' 
+                                        ? 'bg-cmurb-vinho/10 text-cmurb-vinho dark:text-orange-400' 
+                                        : 'bg-blue-100 text-blue-700' 
+                                }`}>
+                                    {user.role}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                                {user.username !== 'admin' && (
+                                    <button onClick={() => setUserToDelete(user)} className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition p-2 hover:bg-red-50 rounded-full">
+                                        <Trash2 size={18} />
+                                    </button>
+                                )}
+                            </td>
+                        </tr>
+                    ))}
+                    {users.length === 0 && (
+                        <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">Nenhum usuário encontrado (além do admin).</td></tr>
+                    )}
+                </tbody>
+            </table>
+        )}
       </div>
 
       {showCreateModal && (
         <Modal onClose={() => setShowCreateModal(false)} title="Criar Novo Usuário">
             <form onSubmit={handleCreateUser} className="space-y-4">
-                <div><label className="label-modern">Login *</label><input type="text" className="input-modern" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})} required /></div>
-                <div><label className="label-modern">Nome *</label><input type="text" className="input-modern" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} required /></div>
+                <div><label className="label-modern">Login (Sem espaços) *</label><input type="text" className="input-modern" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value.trim()})} required /></div>
+                <div><label className="label-modern">Nome Completo *</label><input type="text" className="input-modern" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} required /></div>
                 <div><label className="label-modern">Senha *</label><input type="password" className="input-modern" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} required /></div>
                 <div>
                     <label className="label-modern">Tipo</label>
@@ -132,5 +182,4 @@ function Modal({ children, onClose, title, danger = false }) {
     )
 }
 export default UserManagementPage;
-
 
