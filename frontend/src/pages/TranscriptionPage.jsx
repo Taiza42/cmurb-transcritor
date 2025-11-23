@@ -284,7 +284,7 @@ function TagInput({ tags, setTags }) {
     }
   };
   return (
-    <div className="w-full border-2 border-gray-300 dark:border-[#4A5568] p-2 rounded-xl bg-gray-50 dark:bg-[#2D3748] focus-within:border-cmurb-laranja focus-within:bg-white dark:focus-within:bg-[#2D3748] transition-colors duration-200">
+      <div className="w-full border-2 border-gray-300 dark:border-[#5a6b74] p-2 rounded-xl bg-gray-50 dark:bg-[#445760] focus-within:border-cmurb-laranja focus-within:bg-white dark:focus-within:bg-[#445760] transition-colors duration-200">
       <div className="flex flex-wrap gap-2 mb-2">
         {tags.map(tag => (
           <span key={tag} className="bg-orange-100 dark:bg-orange-900/40 text-cmurb-vinho dark:text-orange-200 px-2.5 py-1 rounded-lg text-xs flex items-center gap-1 border border-orange-200 dark:border-orange-800 font-bold shadow-sm">

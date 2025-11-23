@@ -6,46 +6,44 @@
 
 /* Configuração Base do Corpo */
 body {
-  @apply bg-white text-gray-900 dark:bg-[#1a202c] dark:text-gray-100 transition-colors duration-300 font-sans antialiased;
+  /* Substituído #191919 por #2B373D no dark mode */
+  @apply bg-white text-gray-900 dark:bg-[#2B373D] dark:text-gray-100 transition-colors duration-300 font-sans antialiased;
 }
 
 @layer components {
-  /* INPUT MODERNO E VISÍVEL 
-     - Fundo levemente cinza no modo claro para destacar do fundo branco.
-     - Borda visível (gray-300).
-     - Cantos arredondados (rounded-xl).
-  */
+  /* INPUT MODERNO */
   .input-modern {
     @apply w-full px-4 py-3 rounded-xl border-2 outline-none transition-all duration-200;
     
-    /* Modo Claro: Fundo cinza gelo, borda cinza média, texto escuro */
+    /* Modo Claro */
     @apply bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400;
     
-    /* Focus: Borda Laranja */
+    /* Focus */
     @apply focus:border-cmurb-laranja focus:bg-white focus:ring-0;
     
-    /* Modo Escuro: Fundo cinza azulado, borda escura, texto branco */
-    @apply dark:bg-[#2D3748] dark:border-[#4A5568] dark:text-white dark:placeholder-gray-500 dark:focus:border-cmurb-laranja;
+    /* Modo Escuro: Substituído #2D3748 por #445760 */
+    @apply dark:bg-[#445760] dark:border-[#5a6b74] dark:text-white dark:placeholder-gray-300 dark:focus:border-cmurb-laranja;
   }
 
   /* LABEL PADRONIZADA */
   .label-modern {
-    @apply block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-wide ml-1;
+    @apply block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 tracking-wide ml-1;
   }
 
-  /* BOTÃO PRIMÁRIO (Laranja) */
+  /* BOTÃO PRIMÁRIO */
   .btn-primary {
     @apply bg-cmurb-laranja text-white font-bold py-3.5 rounded-xl shadow-md hover:shadow-lg hover:brightness-110 active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex justify-center items-center gap-2 text-sm uppercase tracking-wider;
   }
 
-  /* BOTÃO PERIGO (Vermelho) */
+  /* BOTÃO PERIGO */
   .btn-danger {
     @apply bg-red-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-red-700 transition shadow-sm active:scale-95 flex items-center gap-2;
   }
   
   /* CARD PADRÃO */
   .card-base {
-    @apply bg-white dark:bg-[#2D3748] p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition-colors;
+    /* Modo Escuro: Substituído #2D3748 por #445760 */
+    @apply bg-white dark:bg-[#445760] p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-600 transition-colors;
   }
 }
 
