@@ -58,7 +58,13 @@ function UserManagementPage() {
                         <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-200">{user.username}</td>
                         <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{user.name}</td>
                         <td className="px-6 py-4">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${user.role === 'admin' ? 'bg-cmurb-vinho/10 text-cmurb-vinho dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:text-blue-300'}`}>{user.role}</span>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+                                user.role === 'admin' 
+                                    ? 'bg-cmurb-vinho/10 text-cmurb-vinho dark:text-orange-400' 
+                                    : 'bg-blue-100 text-blue-700' // AQUI: Removidos os estilos "dark:" para manter sempre igual ao claro
+                            }`}>
+                                {user.role}
+                            </span>
                         </td>
                         <td className="px-6 py-4 text-right">
                             {user.username !== 'admin' && (
@@ -72,7 +78,8 @@ function UserManagementPage() {
             </tbody>
         </table>
       </div>
-{showCreateModal && (
+
+      {showCreateModal && (
         <Modal onClose={() => setShowCreateModal(false)} title="Criar Novo Usuário">
             <form onSubmit={handleCreateUser} className="space-y-4">
                 <div><label className="label-modern">Login *</label><input type="text" className="input-modern" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})} required /></div>
@@ -125,4 +132,5 @@ function Modal({ children, onClose, title, danger = false }) {
     )
 }
 export default UserManagementPage;
+
 

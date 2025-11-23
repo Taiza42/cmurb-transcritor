@@ -1,13 +1,23 @@
 nohup: ignoring input
-INFO:     Started server process [142997]
+INFO:     Started server process [151297]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0--- Carregando Modelo Whisper (Isso pode demorar 1 min) ---
 --- Modelo Carregado! ---
 INFO:     131.100.130.244:0 - "GET /login HTTP/1.1" 404 Not Found
+INFO:     131.100.130.244:0 - "GET /login HTTP/1.1" 404 Not Found
 INFO:     131.100.130.244:0 - "GET / HTTP/1.1" 200 OK
-INFO:     131.100.130.244:0 - "GET /assets/index-BXE2Q0oU.js HTTP/1.1" 200 OK
-INFO:     131.100.130.244:0 - "GET /assets/index-BoP_CKIe.css HTTP/1.1" 200 OK
-INFO:     131.100.130.244:0 - "GET /assets/image_0-DyKP_vtH.png HTTP/1.1" 200 OK
-INFO:     131.100.130.244:0 - "POST /api/login HTTP/1.1" 401 Unauthorized
+INFO:     131.100.130.244:0 - "GET /assets/index-BATd1FJs.js HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "GET /assets/index-BJProf6r.css HTTP/1.1" 200 OK
+INFO:     131.100.130.244:0 - "GET /vite.svg HTTP/1.1" 200 OK
 INFO:     131.100.130.244:0 - "POST /api/login HTTP/1.1" 200 OK
+/home/isabela_santana_prof/cmurb-transcritor/venv/lib/python3.10/site-packages/whisper/transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
+  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+Iniciando transcrição para: oi
+INFO:     131.100.130.244:0 - "POST /api/transcrever HTTP/1.1" 200 OK
+INFO:     2804:bdc:1f41:68f0:5a52:4d1e:53aa:acf2:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     2804:bdc:1f41:68f0:5a52:4d1e:53aa:acf2:0 - "GET /login HTTP/1.1" 404 Not Found
+INFO:     2804:bdc:1f41:68f0:5a52:4d1e:53aa:acf2:0 - "GET /login HTTP/1.1" 404 Not Found
+INFO:     2804:bdc:1f41:68f0:5a52:4d1e:53aa:acf2:0 - "GET / HTTP/1.1" 200 OK
+INFO:     2804:bdc:1f41:68f0:5a52:4d1e:53aa:acf2:0 - "POST /api/login HTTP/1.1" 401 Unauthorized
+INFO:     2804:bdc:1f41:68f0:5a52:4d1e:53aa:acf2:0 - "POST /api/login HTTP/1.1" 401 Unauthorized
