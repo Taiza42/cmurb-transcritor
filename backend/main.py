@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from fastapi import FastAPI, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from docxtpl import DocxTemplate
 
@@ -41,7 +41,6 @@ def init_db():
     # Criar ADMIN padrão se não existir
     c.execute("SELECT * FROM users WHERE username='admin'")
     if not c.fetchone():
-        print("--- Criando usuário ADMIN padrão ---")
         pw = bcrypt.hashpw(b"admin123", bcrypt.gensalt())
         c.execute("INSERT INTO users VALUES (?, ?, ?, ?)", 
                   ('admin', pw, 'admin', 'Administrador CMUrb'))
@@ -55,8 +54,19 @@ print("--- Carregando Modelo Whisper ---")
 model = whisper.load_model("base") 
 print("--- Modelo Carregado! ---")
 
-# --- UTILITÁRIOS ---
+# --- UTILITÁRIOS DE DATA ---
+
+def formatar_data_curta(data_str):
+    """Transforma YYYY-MM-DD em DD/MM/YYYY"""
+    if not data_str: return ""
+    try:
+        dt = datetime.strptime(data_str, "%Y-%m-%d")
+        return dt.strftime("%d/%m/%Y")
+    except:
+        return data_str
+
 def formatar_data_extenso(data_str):
+    """Transforma YYYY-MM-DD em DD de mês de YYYY"""
     if not data_str: return ""
     try:
         meses = {1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril", 5: "maio", 6: "junho", 
@@ -66,40 +76,51 @@ def formatar_data_extenso(data_str):
     except:
         return data_str
 
-def formatar_data_curta(data_str):
-    if not data_str: return ""
-    try:
-        dt = datetime.strptime(data_str, "%Y-%m-%d")
-        return dt.strftime("%d/%m/%Y")
-    except:
-        return data_str
-
 def gerar_iniciais(nome_completo):
     if not nome_completo: return ""
     partes = nome_completo.split()
     iniciais = [p[0].upper() for p in partes if len(p) > 1 or p.lower() not in ['e', 'da', 'do', 'de']]
     return ".".join(iniciais)
 
-def agrupar_texto_2min(segments):
-    texto_formatado = ""
-    intervalo = 120 
-    tempo_limite = intervalo
-    bloco_atual = []
+# --- LÓGICA DE AGRUPAMENTO ESTRITA (1 MINUTO) ---
+def agrupar_minuto_a_minuto(segments):
+    """
+    Agrupa segmentos estritamente por minuto (0-1, 1-2, 2-3).
+    Garante que não haja quebras de segundos estranhas.
+    """
+    # Dicionário onde a chave é o número do minuto (0, 1, 2...) e o valor é uma lista de textos
+    buckets = {}
+    
+    for seg in segments:
+        # Calcula em qual minuto o segmento começou
+        # Ex: 59s -> minuto 0.   61s -> minuto 1.   125s -> minuto 2.
+        minuto_index = int(seg['start'] // 60)
+        
+        if minuto_index not in buckets:
+            buckets[minuto_index] = []
+        
+        buckets[minuto_index].append(seg['text'].strip())
+        
+    # Monta o texto final iterando pelos minutos
+    texto_final = ""
+    
+    # Descobre qual foi o último minuto falado para iterar até lá
+    ultimo_minuto = max(buckets.keys()) if buckets else 0
+    
+    for i in range(ultimo_minuto + 1):
+        # Gera o label matematicamente fixo: 00:00 - 01:00, 01:00 - 02:00
+        inicio_label = f"{i:02d}:00"
+        fim_label = f"{i+1:02d}:00"
+        
+        # Junta todo o texto daquele minuto
+        texto_bloco = " ".join(buckets.get(i, []))
+        
+        # Só adiciona no documento se houver fala nesse minuto
+        if texto_bloco:
+            texto_final += f"[{inicio_label} - {fim_label}] {texto_bloco}\n\n"
+            
+    return texto_final
 
-    for s in segments:
-        bloco_atual.append(s['text'].strip())
-        if s['end'] >= tempo_limite:
-            minutos = int(tempo_limite / 60)
-            tempo_label = f"{minutos-2:02d}:00 - {minutos:02d}:00" if minutos >=2 else "00:00 - 02:00"
-            texto_formatado += f"[{tempo_label}] {' '.join(bloco_atual)}\n\n"
-            bloco_atual = []
-            tempo_limite += intervalo
-            while s['end'] >= tempo_limite: tempo_limite += intervalo
-
-    if bloco_atual: texto_formatado += f" ".join(bloco_atual)
-    return texto_formatado
-
-# --- SCHEMAS PYDANTIC ---
 class LoginData(BaseModel):
     username: str
     password: str
@@ -110,7 +131,7 @@ class UserCreate(BaseModel):
     name: str
     role: str
 
-# --- ROTAS DA API ---
+# --- ROTAS ---
 
 @app.post("/api/login")
 def login(data: LoginData):
@@ -124,11 +145,8 @@ def login(data: LoginData):
         return {"status": "ok", "role": user[1], "name": user[2]}
     raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-# --- NOVAS ROTAS DE GESTÃO DE USUÁRIOS ---
-
 @app.get("/api/users")
 def list_users():
-    """Lista todos os usuários (sem mostrar a senha)"""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
@@ -139,19 +157,13 @@ def list_users():
 
 @app.post("/api/users")
 def create_user(user: UserCreate):
-    """Cria novo usuário no banco"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    
-    # Verifica se já existe
     c.execute("SELECT username FROM users WHERE username=?", (user.username,))
     if c.fetchone():
         conn.close()
         raise HTTPException(status_code=400, detail="Usuário já existe")
-    
-    # Hash da senha
     hashed_pw = bcrypt.hashpw(user.password.encode(), bcrypt.gensalt())
-    
     c.execute("INSERT INTO users (username, password, role, name) VALUES (?, ?, ?, ?)",
               (user.username, hashed_pw, user.role, user.name))
     conn.commit()
@@ -160,18 +172,14 @@ def create_user(user: UserCreate):
 
 @app.delete("/api/users/{username}")
 def delete_user(username: str):
-    """Remove usuário do banco"""
     if username == "admin":
         raise HTTPException(status_code=400, detail="Não é possível excluir o admin principal")
-        
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("DELETE FROM users WHERE username=?", (username,))
     conn.commit()
     conn.close()
     return {"status": "deleted"}
-
-# ----------------------------------------
 
 @app.post("/api/transcrever")
 def transcrever(
@@ -187,18 +195,25 @@ def transcrever(
         f.write(file.file.read())
 
     try:
-        # Whisper
+        # Whisper processa
         result = model.transcribe(temp_path, language="pt", initial_prompt=f"Entrevista sobre {resumo}")
-        texto_final = agrupar_texto_2min(result['segments'])
-        texto_preview = result['text']
+        
+        # Texto 1: Agrupado estritamente por minuto para o DOCX
+        texto_para_docx = agrupar_minuto_a_minuto(result['segments'])
+        
+        # Texto 2: Puro para a Prévia no site (como solicitado, o conteúdo real do whisper)
+        # Se quiser ver a formatação na prévia também, mude para: texto_para_preview = texto_para_docx
+        texto_para_preview = result['text'] 
 
-        # DOCX
         doc = DocxTemplate(TEMPLATE_PATH)
         contexto = {
             'projeto': projeto,
             'coordenador': coordenador,
+            
+            # Formatação de Datas
             'data': formatar_data_curta(data),
             'data_extenso': formatar_data_extenso(data),
+            
             'local': local,
             'formato': formato,
             'entrevistadores': entrevistadores,
@@ -212,7 +227,7 @@ def transcrever(
             'obs': obs,
             'resumo': resumo,
             'tags': tags,
-            'conteudo_transcricao': texto_final
+            'conteudo_transcricao': texto_para_docx
         }
 
         doc.render(contexto)
@@ -220,14 +235,13 @@ def transcrever(
         output_path = os.path.join(UPLOAD_DIR, output_filename)
         doc.save(output_path)
         
-        # Base64 para retorno
         with open(output_path, "rb") as doc_file:
-            encoded_string = base64.b64encode(doc_file.read()).decode('utf-8')
+            encoded_file = base64.b64encode(doc_file.read()).decode('utf-8')
 
         return JSONResponse({
-            "preview_text": texto_preview,
+            "preview_text": texto_para_preview,
             "file_name": output_filename,
-            "file_base64": encoded_string
+            "file_base64": encoded_file
         })
 
     except Exception as e:
@@ -240,4 +254,5 @@ app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="static")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8501)
+
 
