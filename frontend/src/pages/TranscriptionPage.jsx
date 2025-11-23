@@ -15,7 +15,7 @@ function TranscriptionPage() {
   
   // Estados para Prévia e Download
   const [resultBlob, setResultBlob] = useState(null);
-  const [previewText, setPreviewText] = useState(""); 
+  const [previewText, setPreviewText] = useState(""); // Guarda o texto real
   const [downloadFileName, setDownloadFileName] = useState("");
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
@@ -40,14 +40,14 @@ function TranscriptionPage() {
     toast.success("Limpo para nova transcrição.");
   };
 
-  // Função para formatar segundos
   const formatTime = (seconds) => {
     if (seconds <= 0) return "0s";
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return m > 0 ? `${m}m ${s}s` : `${s}s`;
   };
-// Função auxiliar: Base64 para Blob (para o download funcionar)
+
+  // Converte o Base64 que vem do backend para um Blob de download
   const base64ToBlob = (base64, mimeType) => {
     const byteCharacters = atob(base64);
     const byteNumbers = new Array(byteCharacters.length);
@@ -89,25 +89,24 @@ function TranscriptionPage() {
     data.append('tags', tags.join(', '));
 
     try {
-      // Tenta obter a resposta
+      // O timeout é alto (15 min) para garantir que dê tempo do Whisper rodar
       const response = await axios.post(`${API_URL}/transcrever`, data, { timeout: 900000 });
       
       clearInterval(progressIntervalRef.current); 
       setProgress(100);
       setRemainingSeconds(0);
       
-      // Verifica se veio o formato novo (JSON com preview) ou o antigo (Blob)
+      // Recebemos o JSON com { preview_text, file_name, file_base64 }
       if (response.data && response.data.preview_text) {
           const { preview_text, file_base64, file_name } = response.data;
-          setPreviewText(preview_text);
+          
+          setPreviewText(preview_text); // Atualiza o texto da prévia
           setDownloadFileName(file_name);
+          
+          // Prepara o arquivo para download
           const blob = base64ToBlob(file_base64, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
           setResultBlob(blob);
-      } else {
-          // Fallback para Blob direto
-          setResultBlob(new Blob([response.data]));
-          setPreviewText("A prévia estará disponível após atualizar o backend.");
-      }
+      } 
 
       setIsComplete(true);
       toast.success("Transcrição Concluída!");
@@ -122,7 +121,8 @@ function TranscriptionPage() {
         clearInterval(progressIntervalRef.current); 
     }
   };
-const handleDownload = () => {
+
+  const handleDownload = () => {
     if (!resultBlob) return;
     const url = window.URL.createObjectURL(resultBlob);
     const link = document.createElement('a');

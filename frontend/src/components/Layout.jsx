@@ -21,21 +21,21 @@ function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col font-sans">
       {/* HEADER PRINCIPAL */}
-      <header className="bg-cmurb-laranja text-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-50 transition-colors border-bQXQw border-white/10">
+      <header className="bg-cmurb-laranja text-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-50 transition-colors border-b border-white/10">
         
-        {/* LADO ESQUERDO: Logo + Título */}
+        {/* LADO ESQUERDO: Logo + Texto Ajustado */}
         <div className="flex items-center gap-4">
-           {/* REMOVIDO O FUNDO BRANCO (bg-white) DAQUI */}
            <img 
              src={logoImg} 
              alt="Logo CMUrb" 
              className="h-12 w-auto object-contain filter drop-shadow-sm" 
-             /* Ajustei h-12 para ficar num tamanho bom sem o padding */
            />
            
-           <div className="flex flex-col leading-none">
-             <h1 className="text-xl font-serif font-bold text-white tracking-wide">CMUrb</h1>
-             <p className="text-xs text-white/90 uppercase tracking-wider font-semibold mt-0.5">Centro de Memória Urbana</p>
+           <div className="flex flex-col justify-center h-full">
+             {/* AQUI: Removido "CMUrb" e ajustado o estilo do texto restante */}
+             <span className="text-lg font-serif font-bold text-white tracking-wide leading-tight">
+               Centro de Memória Urbana
+             </span>
            </div>
         </div>
 
@@ -43,7 +43,7 @@ function Layout({ children }) {
         <div className="flex items-center gap-4 sm:gap-6">
           
           {user?.role === 'admin' && (
-            <nav className="hidden md:flex gap-2 mr-2 border-rQXQw border-white/30 pr-6">
+            <nav className="hidden md:flex gap-2 mr-2 border-r border-white/30 pr-6">
                 <NavLink to="/" active={isActive('/')} icon={<FileAudio size={18} />}>Transcrição</NavLink>
                 <NavLink to="/acessos" active={isActive('/acessos')} icon={<Users size={18} />}>Gestão de Usuários</NavLink>
             </nav>
@@ -94,5 +94,4 @@ const NavLink = ({ to, children, active, icon }) => (
 )
 
 export default Layout;
-
 
