@@ -1,0 +1,9 @@
+openai-whisper
+numpy
+torch
+ffmpeg-python
+flask
+requests
+fastapi
+uvicorn
+python-multipart
