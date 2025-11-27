@@ -1,26 +1,25 @@
-# Usa uma imagem Python leve compatível com ARM
+# Usa Python 3.10 (Versão estável pro Whisper)
 FROM python:3.10-slim
 
-# Instala o FFmpeg (Obrigatório para o Whisper funcionar) e Git
+# Instala FFmpeg (Obrigatório pro Whisper) e Git
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     git \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Cria a pasta do app
+# Cria a pasta do app dentro do container
 WORKDIR /app
 
-# Copia seus arquivos para dentro da imagem
+# Copia seus arquivos para lá
 COPY . .
 
-# Instala as dependências (Seu requirements.txt)
-# O --no-cache-dir ajuda a não estourar a memória da Oracle
+# Instala as bibliotecas do requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expõe a porta (Geralmente apps Python usam 5000, 8000 ou 8501)
-# IMPORTANTE: Troque 5000 pela porta que seu app usa
-EXPOSE 5000
+# Expõe a porta 8000 (Padrão do FastAPI)
+EXPOSE 8000
 
-# Comando para rodar o app
-# IMPORTANTE: Troque "app.py" pelo nome do seu arquivo principal
-CMD ["python", "main.py"]
+# COMANDO DE INICIALIZAÇÃO
+# Atenção: Ajuste "app:app" conforme o nome do seu arquivo (leia abaixo)
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
