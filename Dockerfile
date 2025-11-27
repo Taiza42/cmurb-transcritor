@@ -22,4 +22,4 @@ EXPOSE 8000
 
 # COMANDO DE INICIALIZAÇÃO
 # Atenção: Ajuste "app:app" conforme o nome do seu arquivo (leia abaixo)
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
